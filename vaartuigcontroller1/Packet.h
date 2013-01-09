@@ -22,6 +22,7 @@ class Packet
   char lengte;
   char data[8];
   void maakpacket(L_packet* llp,int id, char RTR, char lengte, unsigned char* data);
+  void leespacket(L_packet llp, int* id, char* RTR, char* lengte, unsigned char* data);
 };
 
 #endif // PACKET_H

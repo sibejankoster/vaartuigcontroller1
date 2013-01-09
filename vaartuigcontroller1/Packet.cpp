@@ -17,3 +17,14 @@ void Packet::maakpacket(L_packet* llp, int id, char RTR, char lengte, unsigned c
    while (i<lengte);
 }
 
+void Packet::leespacket(L_packet llp, int* id, char* RTR, char* lengte, unsigned char* data)
+{ std::string s;
+  *lengte=static_cast<char>(llp.id_block2&0x000F);
+  *RTR=(llp.id_block2>>4)&0x0001;
+  *id= (llp.id_block1<<7)+(llp.id_block2>>5)*16;
+  int i=0;
+  do
+  {  data[i]=llp.datablock[i];
+  }
+  while(++i<*lengte);
+}

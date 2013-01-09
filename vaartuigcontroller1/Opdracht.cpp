@@ -4,21 +4,19 @@
 
 using namespace std;
 
-int Menu::Menukeuze_h()
-{  int keuze;
+void Menu::Menukeuze_h()
+{  int menutoestand;
    cout <<"----------------------------------"<<endl;
    cout << "1. Licht_schakelen" <<endl;
    cout << "2. GPS_invoeren" << endl;
-   cout << "3. Terug" <<endl ;
    cout <<"----------------------------------"<<endl;
    cout << ">> ";
-   cin>>keuze;
-   return keuze;
+   return;
 }
 
-int Menu::Menukeuze_l()
+void Menu::Menukeuze_l()
 {  int keuze;
-   cout <<"----------------------------------"<<endl;
+   cout <<"---------menu verlichting---------"<<endl;
    cout << "1. Toplicht" <<endl;
    cout << "2. Ankerlicht" <<endl;
    cout << "3. Stoomlicht" <<endl;
@@ -26,12 +24,11 @@ int Menu::Menukeuze_l()
    cout << "5. Terug"<<endl;
    cout <<"----------------------------------"<<endl;
    cout << ">> ";
-   cin>>keuze;
-   return keuze;
+   return;  //1.x = keuze submenu 'licht'
 }
-int Menu::Menukeuze_n()
+void Menu::Menukeuze_n()
 {  int keuze;
-   cout <<"----------------------------------"<<endl;
+   cout <<"----------menu navigatie-----------"<<endl;
    cout << "1. Positie_invoeren" <<endl;
    cout << "2. Waypoint_opslaan" << endl;
    cout << "3. Waypoint_verwijderen" << endl;
@@ -40,6 +37,6 @@ int Menu::Menukeuze_n()
    cout << "6. Terug" << endl;
    cout <<"----------------------------------"<<endl;
    cout << ">> ";
-   cin>>keuze;  return keuze;
+   return; //  2.x = keuze submenu 'navigatie'
 }
 
