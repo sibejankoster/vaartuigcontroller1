@@ -76,6 +76,7 @@
   <ItemGroup>
     <ClCompile Include="CANFormat.cpp" />
     <ClCompile Include="File.cpp" />
+    <ClCompile Include="GPS.cpp" />
     <ClCompile Include="scheduler.cpp" />
     <ClCompile Include="Opdracht.cpp" />
     <ClCompile Include="Packet.cpp" />
@@ -83,6 +84,7 @@
   <ItemGroup>
     <ClInclude Include="CANFormat.h" />
     <ClInclude Include="File.h" />
+    <ClInclude Include="GPS.h" />
     <ClInclude Include="Opdracht.h" />
     <ClInclude Include="Packet.h" />
   </ItemGroup>

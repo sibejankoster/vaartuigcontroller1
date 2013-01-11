@@ -10,12 +10,58 @@
 #include <iostream>
 #include <fstream>
 #include <conio.h>
+#include <stdlib.h>
+#include <windows.h>
+//#include <boost/thread.hpp>
 #include "File.h"
 #include "Packet.h"
 #include "Opdracht.h"
+#include "CANFormat.h"
+
+void gotoxy( int x, int y )
+{ COORD p = { x, y };
+  SetConsoleCursorPosition( GetStdHandle( STD_OUTPUT_HANDLE ), p );
+}
+
+void clrwindow(int x1, int y1, int x2, int y2)
+{  int i,j;
+   for (i=x1;i<=x2;i++)
+   {  for (j=y1; j<=y2; j++)
+	  {  gotoxy(i,j);
+         std::cout<<" ";
+      }
+   }
+   gotoxy(x1,y1);
+}
+
+void framewindow(int x1, int y1, int x2, int y2)
+{  int i;
+   gotoxy(x1,y1);
+   for (i=x1;i<=x2;i++) std::cout <<"-";  
+   gotoxy(x1,y2);
+   for (i=x1;i<=x2;i++) std::cout <<"-";  
+   gotoxy(x1,y1); 
+}
+
+void windowprint (int window[4], std::string A[])
+{  int i;
+   std::string header, regel;
+   header = "+" + std::string((window[3]-window[0]), '-') + "+";
+   gotoxy (window[0],window[1]);
+   std::cout <<header;
+   for (i=window[1]+1;i<window[3];i++)
+   {  regel = "|"+A[i-1]+std::string((window[2]-window[0]-sizeof(A[i-1])," ")) +"|";
+      gotoxy(window[0],i);
+	  std::cout << regel;
+   }
+   gotoxy(window[0], window[3]);
+   std::cout <<header;
+}
 
 void main()
-{ unsigned char data[8];
+{ int menuwindow[] = {0,0,35,10};
+  int outputwindow[]={40,0,75,10};
+  std::string A[40];
   unsigned int id=0;
   unsigned char RTR=0, lengte=0;
   unsigned int *ptr_id;
@@ -24,14 +70,40 @@ void main()
   ptr_id=&id;
   ptr_RTR=&RTR;
   ptr_lengte = &lengte;
-  File in_file;
-  in_file.init("CANin.txt");
+  File CANfile, GPSfile;
+  CANfile.init("CANin.txt");
   //->> init GPS file
   int menutoestand=0;
   Menu _menu;
-  int toplicht=0, ankerlicht=0, stoomlicht =0, navigatielicht=0; 
+  int olietemp=0;
+  int diesel =0;
+  int waterSB =0;
+  int waterBB = 0;
+  bool toplicht=false, ankerlicht=false, stoomlicht =false, navigatielicht=false, deklicht=false;
+  bool dieptealarm = true, navigatiealarm=false;
+  bool* tlicht, *alicht, *slicht, *nlicht, *dlicht, *dalarm, *nalarm;
+  tlicht=&toplicht;
+  alicht=&ankerlicht;
+  slicht=&stoomlicht;
+  nlicht=&navigatielicht;
+  dlicht=&deklicht;
+  dalarm=&dieptealarm;
+  nalarm=&navigatiealarm;
+  Id0x32 CANOpdracht;
+  Id0x40 GPSbericht;
+  Packet pack;
+  L_packet llp;
+  L_packet* llp_p;
+  llp_p=&llp;
+  unsigned char datablock[8];
+  int NBG=54;
+  int NBM=0;
+  int OLG=5;
+  int OLM=50;
+
   while (1)
-  {  switch(menutoestand)
+  { clrwindow(0,0,40,9);
+	switch(menutoestand)
 	{	case 0:
 			_menu.Menukeuze_h();
 			break;
@@ -42,30 +114,37 @@ void main()
 			_menu.Menukeuze_n();
 			break;
 		case 11:
-			if (toplicht==1) toplicht =0;
-			else toplicht =1;
+			if (toplicht==true) toplicht =false;
+			else toplicht =true;
 			menutoestand=0;
 			_menu.Menukeuze_h();
 			break;
 		case 12: 
-			if (ankerlicht==1) ankerlicht =0;
-			else ankerlicht =1;
+			if (ankerlicht==true) ankerlicht =false;
+			else ankerlicht =true;
 			menutoestand=0;
 			_menu.Menukeuze_h();
 			break;
 		case 13:
-			if (stoomlicht==1) stoomlicht =0;
-			else stoomlicht =1;
+			if (stoomlicht==true) stoomlicht =false;
+			else stoomlicht =true;
 			menutoestand=0;
+			clrwindow(0,0,20,10);
 			_menu.Menukeuze_h();
 			break;
 		case 14:
-			if (navigatielicht==1) navigatielicht =0;
-			else navigatielicht =1;
+			if (navigatielicht==true) navigatielicht =false;
+			else navigatielicht =true;
 			menutoestand=0;
 			_menu.Menukeuze_h();
 			break;
 		case 15:
+			if (deklicht==true) deklicht =false;
+			else deklicht =true;
+			menutoestand=0;
+			_menu.Menukeuze_h();
+			break;
+		case 16:
 			menutoestand=0;
 			_menu.Menukeuze_h();
 			break;
@@ -87,26 +166,48 @@ void main()
      }
 	 userinput=0;
 	 fflush(stdin);
+	
   }
   //-->>verwerk opdrachten in file
-  in_file.zendbericht("CAN_in.txt", id, RTR, lengte, data);
-  //-->>lees sensoren (lees file)
-  in_file.leesbericht("CAN_in.txt", &id, &RTR, &lengte, data);
-  std::cout<<"sensoren gelezen"<<std::endl;
+  //deze worden later ingevuld
+  int roer=19, *roerp;
+  roerp=&roer;
+  //<<
+  CANOpdracht.maak_id0x32(datablock, roer, toplicht, ankerlicht, stoomlicht, 
+	   navigatielicht, deklicht, dieptealarm, navigatiealarm);
+  pack.maakpacket(&llp, 0x32, 1, 3, datablock);
+  CANfile.zendbericht(&llp, 3);
   
-  //print toestand
+  //-->>file teruglezen
+  CANfile.leesbericht(llp_p);
+  pack.leespacket(llp_p, 0x32, 1, 3, datablock);
+  CANOpdracht.lees_id0x32(datablock, *roerp, *tlicht, *alicht, *slicht,*nlicht, *dlicht, *dalarm, *nalarm);
+   
+  //print terugmelding
+  framewindow(0,10,40,24);
+  clrwindow(0,11,40,23);
+  std::cout<<"roer    \t"<<*roerp <<std::endl<<"toplicht \t"<<*tlicht<<std::endl<<"ankerlicht \t"<<*alicht<<std::endl;
+  std::cout<<"stoomlicht \t"<<*slicht <<std::endl<<"navigatielicht \t"<<*nlicht<<std::endl<<"deklicht \t"<<*dlicht<<std::endl;
+  std::cout<<"dieptealarm \t"<<*dalarm <<std::endl<<"navigatiealarm \t"<<*nalarm<<std::endl;
+  std::cout<< "olietemp\t" <<std::endl<<"diesel\t" <<std::endl << "waterSB \t" <<std::endl <<"waterBB \t"<<std::endl;
+ 
+  //hier eventueel GPS positie inlezen uit bestaande file
+  //oude GPS positie opslaan
+  GPSbericht.maak_id0x40(datablock, NBG, NBM, OLG, OLM);
+  pack.maakpacket(&llp, 0x40, 1, 4, datablock);
+  GPSfile.logbericht(&llp, 4);
+  
   //werk positie bij
-  //save positie
-  //geef alarmen
-  //loop
+  // koers= koers + roerstand
+  // positie NB = NB + snelheid *cos alfa
+  // positie OL = OL + snelheid *sin alfa
+  // save nieuwe positie
+  // storingen simuleren ?
+  // geef alarmen
+  // loop
+  // routes instellen
   }
    
-  /*
-  in_file.leesbericht("CANin.txt", ptr_id, ptr_RTR, ptr_lengte, data);
-  printf ("id %d RTR  %d lengte %d \n",id,RTR,lengte);
-  printf ("temperatuur %d\ndiesel %d\nwaterSB %d\nwaterBB %d\n",data[0],data[1],data[2],data[3]); 
-  printf ("data4 %d\ndat 5 %d\ndata 6 %d\ndata 7 %d\n",data[4],data[5],data[6],data[7]);
-  */
-
+  
 
 }

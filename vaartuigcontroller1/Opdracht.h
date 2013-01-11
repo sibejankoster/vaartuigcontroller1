@@ -19,18 +19,7 @@ class Menu
    void Menukeuze_h();
    void Menukeuze_l();
    void Menukeuze_n();
-
 };
-
-//toon hoofdmenu
-//toon submenu GPS invoeren of verlichting
-//invoeren waypoits = code 0x40
-//schakelen verlichting = code 0x32
-//terugmelding status = code 0x64
-
-
-
-
 
 
 #endif //OPDRACHT_H

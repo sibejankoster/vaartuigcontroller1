@@ -7,49 +7,56 @@
 //
 
 #include "CANFormat.h"
-void Id0x62::maak_id0x62(L_packet* llp, char olietemp,unsigned char diesel, unsigned char waterSB, unsigned char waterBB, 
+void Id0x62::maak_id0x62(unsigned char* datablock, char olietemp,unsigned char diesel, unsigned char waterSB, unsigned char waterBB, 
 	   bool toplicht, bool ankerlicht, bool stoomlicht, bool navigatielicht, bool deklicht, bool dieptealarm,
 	   bool navigatiealarm)
-{  llp->datablock[0]=olietemp;
-   llp->datablock[1]=diesel;
-   llp->datablock[2]=waterSB;
-   llp->datablock[3]=waterBB;
-   llp->datablock[4]=toplicht<<8+ankerlicht<<7+stoomlicht<<6+navigatielicht<<5+deklicht<<4;
-   llp->datablock[5]=dieptealarm<<8+navigatiealarm<<7;
+{  datablock[0]=olietemp;
+   datablock[1]=diesel;
+   datablock[2]=waterSB;
+   datablock[3]=waterBB;
+   datablock[4]=(toplicht<<8)+(ankerlicht<<7)+(stoomlicht<<6)+(navigatielicht<<5)+(deklicht<<4);
+   datablock[5]=(dieptealarm<<8)+(navigatiealarm<<7);
 }
 
-void Id0x62::lees_id0x62(L_packet* llp, char olietemp,unsigned char diesel, unsigned char waterSB, unsigned char waterBB, 
+void Id0x62::lees_id0x62(unsigned char* datablock, char olietemp,unsigned char diesel, unsigned char waterSB, unsigned char waterBB, 
 	   bool toplicht, bool ankerlicht, bool stoomlicht, bool navigatielicht, bool deklicht, bool dieptealarm,
 	   bool navigatiealarm)
-{  olietemp=llp->datablock[0];
-   diesel=llp->datablock[1];
-   waterSB=llp->datablock[2];
-   waterBB=llp->datablock[3];
-   toplicht= llp->datablock[4]&0x80;
-   ankerlicht= llp->datablock[4]&0x40;
-   stoomlicht= llp->datablock[4]&0x20;
-   navigatielicht= llp->datablock[4]&0x10;
-   deklicht= llp->datablock[4]&0x08;
-   dieptealarm = llp->datablock[5]&0x80;
-   navigatiealarm = llp->datablock[5]&0x40;
+{  olietemp=datablock[0];
+   diesel=datablock[1];
+   waterSB=datablock[2];
+   waterBB=datablock[3];
+   toplicht=datablock[4]&0x80;
+   ankerlicht=datablock[4]&0x40;
+   stoomlicht=datablock[4]&0x20;
+   navigatielicht=datablock[4]&0x10;
+   deklicht=datablock[4]&0x08;
+   dieptealarm =datablock[5]&0x80;
+   navigatiealarm = datablock[5]&0x40;
 }  
 
-void Id0x40::maak_id0x40(L_packet* llp, int graden_NB, unsigned int decimaal_NB, int graden_OL, unsigned int decimaal_OL)
-{  llp->datablock[0]=graden_NB;
-   llp->datablock[1]=decimaal_NB;
-   llp->datablock[2]=graden_OL;
-   llp->datablock[3]=decimaal_OL;
+void Id0x40::maak_id0x40(unsigned char* datablock, int graden_NB, unsigned int decimaal_NB, int graden_OL, unsigned int decimaal_OL)
+{  datablock[0]=graden_NB;
+   datablock[1]=decimaal_NB;
+   datablock[2]=graden_OL;
+   datablock[3]=decimaal_OL;
 }
 
-void Id0x32::maak_id0x32(L_packet* llp, int roer_act, bool toplicht_act, bool ankerlicht_act, bool stoomlicht_act, 
-	   bool navigatielicht_act, bool deklicht_act, bool dieptealarm_act, bool navigatiealarm_act)
-{
+void Id0x32::lees_id0x32(unsigned char* datablock, int roer, bool toplicht, bool ankerlicht, bool stoomlicht, 
+	   bool navigatielicht, bool deklicht, bool dieptealarm, bool navigatiealarm)
+{  roer=datablock[0];
+   toplicht=datablock[2]&0x80;
+   ankerlicht =datablock[2]&0x40;
+   stoomlicht =datablock[2]&0x20;
+   navigatielicht =datablock[2]&0x10;
+   deklicht =datablock[2]&0x08;
+   dieptealarm =datablock[2]&0x04;
+   navigatiealarm =datablock[2]&0x02;
 }
 
-void Id0x32::lees_id0x32(L_packet* llp, int roer_act, bool toplicht_act, bool ankerlicht_act, bool stoomlicht_act, 
-	   bool navigatielicht_act, bool deklicht_act, bool dieptealarm_act, bool navigatiealarm_act)
-{ llp->datablock[0]=roer_act;
-  llp->datablock[1]=0;
-  llp->datablock[2]=toplicht_act<<8+ankerlicht_act<<7+stoomlicht_act<<6+navigatielicht_act<<5+deklicht_act<<4+
-	  dieptealarm_act<<4+navigatiealarm_act<<3;
+void Id0x32::maak_id0x32(unsigned char* datablock, int roer, bool toplicht, bool ankerlicht, bool stoomlicht, 
+	   bool navigatielicht, bool deklicht, bool dieptealarm, bool navigatiealarm)
+{  datablock[0]=roer;
+   datablock[1]=0;
+   datablock[2]=(toplicht<<7)+(ankerlicht<<6)+(stoomlicht<<5)+(navigatielicht<<4)+(deklicht<<3)+(dieptealarm<<2)+(navigatiealarm<<1);
 }
+

@@ -7,8 +7,8 @@ using namespace std;
 void Menu::Menukeuze_h()
 {  int menutoestand;
    cout <<"----------------------------------"<<endl;
-   cout << "1. Licht_schakelen" <<endl;
-   cout << "2. GPS_invoeren" << endl;
+   cout << "1. Licht schakelen" <<endl;
+   cout << "2. GPS invoeren" << endl;
    cout <<"----------------------------------"<<endl;
    cout << ">> ";
    return;
@@ -21,7 +21,8 @@ void Menu::Menukeuze_l()
    cout << "2. Ankerlicht" <<endl;
    cout << "3. Stoomlicht" <<endl;
    cout << "4. Navigatielicht" <<endl;
-   cout << "5. Terug"<<endl;
+   cout << "5. Deklicht"<<endl;
+   cout << "6. Terug"<<endl;
    cout <<"----------------------------------"<<endl;
    cout << ">> ";
    return;  //1.x = keuze submenu 'licht'

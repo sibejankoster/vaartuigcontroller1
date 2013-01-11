@@ -17,9 +17,10 @@
 class File
 { public:
    void init(std::string filenaam); 
-   void leesbericht(std::string filenaam, unsigned int* id, unsigned char* RTR, unsigned char* lengte, unsigned char data[]);
-   void zendbericht(std::string filenaam, unsigned int id, unsigned char RTR, unsigned char lengte, unsigned char data[]);
-  private:
+   void leesbericht(L_packet* llp_p);
+   void zendbericht(L_packet* llp, char lengte);
+   void logbericht (L_packet* llp, char lengte);
+private:
    std::string s;
 };
 
