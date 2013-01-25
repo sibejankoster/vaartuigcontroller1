@@ -34,11 +34,19 @@ void Id0x62::lees_id0x62(unsigned char* datablock, char olietemp,unsigned char d
    navigatiealarm = datablock[5]&0x40;
 }  
 
-void Id0x40::maak_id0x40(unsigned char* datablock, int graden_NB, unsigned int decimaal_NB, int graden_OL, unsigned int decimaal_OL)
-{  datablock[0]=graden_NB;
-   datablock[1]=decimaal_NB;
-   datablock[2]=graden_OL;
-   datablock[3]=decimaal_OL;
+void Id0x40::maak_id0x40(unsigned char* datablock, float NBcoord, float OLcoord)
+{  char NBG=char(NBcoord);
+   char NBM1= char (NBcoord*100);
+   char NBM2= char (NBcoord*10000);
+   char OLG=char(OLcoord);
+   char OLM1= char (OLcoord*100);
+   char OLM2= char (OLcoord*10000);
+	datablock[0]= NBG;
+   datablock[1]= NBM1;
+   datablock[2]= NBM2;
+   datablock[3]= OLG;
+   datablock[4]= OLM1;
+   datablock[5]= OLM2;
 }
 
 void Id0x32::lees_id0x32(unsigned char* datablock, int roer, bool toplicht, bool ankerlicht, bool stoomlicht, 

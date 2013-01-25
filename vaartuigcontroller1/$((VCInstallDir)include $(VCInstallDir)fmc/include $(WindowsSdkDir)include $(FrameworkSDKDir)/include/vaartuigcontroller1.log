@@ -1,0 +1,4 @@
+﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(298,5): warning MSB8004: Intermediate Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Intermediate Directory.
+  scheduler.cpp
+c:\users\sibe jan koster\documents\han\vaartuigcontroller1\vaartuigcontroller1\scheduler.cpp(156): warning C4244: '+=' : conversion from 'double' to 'int', possible loss of data
+  vaartuigcontroller1.vcxproj -> C:\Users\Sibe Jan Koster\Documents\HAN\vaartuigcontroller1\Debug\vaartuigcontroller1.exe

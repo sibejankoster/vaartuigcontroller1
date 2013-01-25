@@ -39,6 +39,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\boost\boost_1_51_0;$(IncludePath)</IncludePath>
+    <IntDir>$((VCInstallDir)include $(VCInstallDir)fmc\include $(WindowsSdkDir)include $(FrameworkSDKDir)\include</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -77,6 +79,7 @@
     <ClCompile Include="CANFormat.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="GPS.cpp" />
+    <ClCompile Include="Layout.cpp" />
     <ClCompile Include="scheduler.cpp" />
     <ClCompile Include="Opdracht.cpp" />
     <ClCompile Include="Packet.cpp" />
@@ -85,6 +88,7 @@
     <ClInclude Include="CANFormat.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="GPS.h" />
+    <ClInclude Include="Layout.h" />
     <ClInclude Include="Opdracht.h" />
     <ClInclude Include="Packet.h" />
   </ItemGroup>

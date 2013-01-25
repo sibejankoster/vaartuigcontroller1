@@ -13,6 +13,8 @@
 
 #include <iostream>
 #include "Packet.h"
+#include "CANFormat.h"
+#include "GPS.h"
 
 class Id0x62  //boodschap van sensorcontroller naar centrale vaartuigcontroller
 { public:
@@ -38,13 +40,10 @@ class Id0x62  //boodschap van sensorcontroller naar centrale vaartuigcontroller
 
 class Id0x40 // GPS zender
 { public:
-   void maak_id0x40(unsigned char* datablock, int graden_NB, unsigned int decimaal_NB, int graden_OL, unsigned int decimaal_OL);
-   void lees_id0x40(unsigned char* datablock, int graden_NB, unsigned int decimaal_NB, int graden_OL, unsigned int decimaal_OL); 
+   void maak_id0x40(unsigned char* datablock, float NBcoord, float OLcoord);
+   void lees_id0x40(unsigned char* datablock, float NBcoord, float OLcoord); 
   private: 
-	int graden_NB;
-   unsigned int decimaal_NB;
-   int graden_OL;
-   unsigned int decimaal_OL;
+	GPSpositie gpspos;
 };
 
 class Id0x32 // boodschap van centrale vaartuigcontroller naar actuators
