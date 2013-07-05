@@ -1,6 +1,6 @@
 #include "GPS.h"
-#include <cmath>
 #include <sstream>
+#include <string>
 
 void GPSpositie::getpos(float* NBcoord, float* OLcoord)
 {  *NBcoord=NB;
@@ -10,13 +10,6 @@ void GPSpositie::getpos(float* NBcoord, float* OLcoord)
 void GPSpositie::put(float NBcoord, float OLcoord)
 {  NB=NBcoord;
    OL=OLcoord;
-}
-
-#define PI 3.14159265
-void GPSpositie::berekenpositie(int koers, int snelheid, float* NBcoord, float* OLcoord)
-{  *NBcoord += snelheid*std::cos (koers*2*PI/360)/120;  //dit hangt af van de kloksnelheid
-   *OLcoord += snelheid*std::sin (koers*2*PI/360)/120;  //1 graad = 60 nautische mijl (NB)
-   // geen grootcirkelberekeningen
 }
 
 void Waypoint::aanmaken(std::string naam, float NB, float OL)
@@ -93,3 +86,10 @@ int  Waypointlijst::load()
 	return 1;
 }
 
+void Route::zoek_volgende_punt(int richting, string vorige_punt)
+{
+}
+bool Route::waypoint_bereikt()
+{
+	return true;
+}

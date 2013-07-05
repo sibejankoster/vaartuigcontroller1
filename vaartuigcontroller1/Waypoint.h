@@ -5,23 +5,3 @@
 //  @ Project : vaartuigcontroller
 //  @ File Name : Waypoint.h
 //  @ Date : 6-12-2012
-//  @ Author : S.J. Koster
-//
-//
-
-
-#if !defined(_WAYPOINT_H)
-#define _WAYPOINT_H
-
-#include "GPS-format.h"
-
-class Waypoint : public GPS-format {
-public:
-	void aanmaken();
-	void bewerken();
-	void save();
-private:
-	int naam;
-};
-
-#endif  //_WAYPOINT_H

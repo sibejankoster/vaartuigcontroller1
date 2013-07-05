@@ -17,47 +17,35 @@
 #include <iomanip>
 #include <iomanip>
 #include <locale>
-#include <process.h>
 #include <iostream>
-//#include <boost/thread/thread.hpp>
-//#include <boost/thread/xtime.hpp>
 #include "File.h"
 #include "Packet.h"
 #include "Opdracht.h"
 #include "CANFormat.h"
 #include "GPS.h"
 #include "Layout.h"
+#include "logfile.h"
+#include "Dynamics.h"
 
-#define CHECK_INTERVAL 2000
-#define MENUMODUS 1
-
-HANDLE keybMutex;
-std::string userinput; 
-int keuze;
-
-int keybmodus=MENUMODUS;
-void inputThread(void *args)
-{ printf("thread started\n");
-  while(1)
-  {	WaitForSingleObject(keybMutex, INFINITE);
-	
-	if (keybmodus=MENUMODUS)
-	{   userinput=_getch();
-		keuze=atoi(userinput.c_str());
+//getinput
+bool getInput(char *c)
+{	if (kbhit())
+	{	*c=getch();
+		return true;
 	}
-	else std::cin >> userinput;
-	ReleaseMutex(keybMutex);
-  }
-  _endthread();
+	return false;
 }
 
 int main()
 { 
-  // keyboard mutex
-  keybMutex = CreateMutex(NULL, 0 ,NULL);
-  _beginthread(inputThread,0,NULL);
+  // dialoog
+  int keuze=0;
+  	
+	// tijd
+  struct tm *nu;
+  time_t now;
   //
-  // windows
+  // output vensters
   Window menuwindow(0,0,40,15);
   Window GPSwindow(0,17,40,26);
   Window toestandwindow(45,0,75,26);
@@ -68,12 +56,26 @@ int main()
   // GPS
   Waypointlijst wptlijst;
   wptlijst.load();
+  Logger GPSlog;
+  GPSlog.wissen();
   float NBcoord, OLcoord;
   float *NBcoordp, *OLcoordp;
   NBcoordp=&NBcoord;
   OLcoordp=&OLcoord;
   GPSpositie gpspos, MOBpositie;
-  gpspos.put(54.0, 4.0);						//uitgangspositie
+  gpspos.put(54.2, 4.0);						//uitgangspositie
+  int loopteller=0;
+  //
+  //Navigatie
+  int afstandWPT;
+  int* afstandWPTp;
+  afstandWPTp=&afstandWPT;
+  int koersWPT;
+  int* koersWPTp;
+  koersWPTp=&koersWPT;
+  bool alarm;
+  bool* alarmp;
+  alarmp=&alarm;
   //
   // CAN
   unsigned int id=0;
@@ -86,7 +88,7 @@ int main()
   ptr_lengte = &lengte;
   File CANfile, GPSfile;
   CANfile.init("CANin.txt");
-  Id0x32 CANOpdracht;
+  Id0x62 CANbericht;
   Id0x40 GPSbericht;
   Packet pack;
   L_packet llp;
@@ -94,7 +96,7 @@ int main()
   llp_p=&llp;
   unsigned char datablock[8];
   //
-  // sensorwaarden
+  // sensoren
   int olietemp=0, diesel =0, waterSB =0, waterBB = 0;
   int *otempp, *dieselp, *waterSBp, *waterBBp;
   otempp=&olietemp;
@@ -112,64 +114,85 @@ int main()
   dalarm=&dieptealarm;
   nalarm=&navigatiealarm;
   int koers=0;
+  int* koersp;
+  koersp=&koers;
   int snelheid=10;
+  int *snelheidsp;
+  snelheidsp=&snelheid;
   int gasstand=10;
   int roer=19, *roerp;
   roerp=&roer;
-
+  //
+  // simulatie
+  Dynamics simulatie;
+  //
   fflush(stdin);
 
   while (1)
-  { //1. Sla default sensorwaarden op in 0x62 file
-	//2. Verwerk opdrachten in sensorwaarden (simulatie vaartuig)
-	CANOpdracht.maak_id0x32(datablock, roer, toplicht, ankerlicht, stoomlicht, 
+  { //1. Tijd
+    time(&now);
+	nu = localtime(&now);
+
+//  Sla default sensorwaarden op in 0x62 file
+//  Sommige variabelen worden per loop bijgewerkt door methods in Dynamics (simulatie vaartuig)
+	CANbericht.maak_id0x62(datablock, olietemp, diesel, waterSB, waterBB, toplicht, ankerlicht, stoomlicht, 
 			navigatielicht, deklicht, dieptealarm, navigatiealarm);
-	pack.maakpacket(&llp, 0x32, 1, 3, datablock);
+	pack.maakpacket(&llp, 0x32, 1, 6, datablock);
 	CANfile.zendbericht(&llp, 3);
-  
-//1. Lees sensorwaarden uit 0x62 file en beeld af op scherm
+//	  
+//  Lees sensorwaarden uit 0x62 file (simulatie CAN bericht)
 	CANfile.leesbericht(llp_p);
 	pack.leespacket(llp_p, 0x32, 1, 3, datablock);
-	CANOpdracht.lees_id0x32(datablock, *roerp, *tlicht, *alicht, *slicht,*nlicht, *dlicht, *dalarm, *nalarm);
+	CANbericht.lees_id0x62(datablock, *otempp, *dieselp, *waterSBp, *waterBBp, *tlicht, *alicht, *slicht,*nlicht, *dlicht, *dalarm, *nalarm);
 	std::ostringstream hulps; 
-	
+//
+//  Beeld af op scherm	
 	hulps << "roer      \t"<< *roerp;			A[0]= hulps.str(); hulps.str("");
 	hulps << "toplicht \t" <<*tlicht;			A[1]=hulps.str();hulps.str("");
-	hulps << "ankerlicht \t" <<*alicht;		A[2]=hulps.str();hulps.str("");
-	hulps << "navigatielicht \t" <<*nlicht;	A[3]=hulps.str();hulps.str("");
+	hulps << "ankerlicht \t" <<*alicht;			A[2]=hulps.str();hulps.str("");
+	hulps << "navigatielicht \t" <<*nlicht;		A[3]=hulps.str();hulps.str("");
 	hulps << "deklicht \t" <<*dlicht;			A[4]=hulps.str();hulps.str("");
 	hulps << "dieptealarm \t" <<*dalarm;		A[5]=hulps.str();hulps.str("");
-	hulps << "navigatiealarm \t" <<*nalarm;	A[6]=hulps.str();hulps.str("");
+	hulps << "navigatiealarm \t" <<*nalarm;		A[6]=hulps.str();hulps.str("");
 	hulps << "olietemperatuur \t" <<*otempp;	A[7]=hulps.str();hulps.str("");
-	hulps << "diesel       \t" <<*dieselp;	A[8]=hulps.str();hulps.str("");
-	hulps << "water SB     \t" <<*waterSBp;	A[9]=hulps.str();hulps.str("");
-	hulps << "water BB     \t" <<*waterBBp;	A[10]=hulps.str();hulps.str("");
-	hulps << "              \t";				A[11]=hulps.str();hulps.str("");
-// de volgende zijn geen sensorwaarden, maar instellingen
-	hulps << "automaat     \t" <<*waterBBp;	A[12]=hulps.str();hulps.str("");
-	hulps << "route        \t" <<*waterBBp;	A[13]=hulps.str();hulps.str("");
-	hulps << "routelogger  \t" <<*waterBBp;	A[14]=hulps.str();hulps.str("");
-	hulps << "toeren       \t" <<*waterBBp;	A[15]=hulps.str();hulps.str("");
-	hulps << "einde";							A[16]=hulps.str();hulps.str("");
-	toestandwindow.print(A);
+	hulps << "diesel       \t" <<*dieselp;		A[8]=hulps.str();hulps.str("");
+	hulps << "water SB     \t" <<*waterSBp;		A[9]=hulps.str();hulps.str("");
+	hulps << "water BB     \t" <<*waterBBp;		A[10]=hulps.str();hulps.str("");
+	hulps << "temp koelwater  \t" <<"90";		A[11]=hulps.str();hulps.str("");
+	hulps << "Motorbelasting \t" <<"- ";		A[12]=hulps.str();hulps.str("");
+	hulps << "Motoraccu      \t" <<"13";		A[13]=hulps.str();hulps.str("");
+	hulps << "Lichtaccu      \t" <<"12";		A[14]=hulps.str();hulps.str("");
+	hulps << "Windrichting   \t" <<"-";			A[15]=hulps.str();hulps.str("");
+	hulps << "Windstrekte    \t" <<"4";			A[16]=hulps.str();hulps.str("");
+	hulps << "VHF kanaal     \t" <<"16";		A[17]=hulps.str();hulps.str("");
+	hulps << "              \t";				A[18]=hulps.str();hulps.str("");
 
-// GPS logger in de vorm van 0x40 berichten
-	gpspos.getpos(NBcoordp, OLcoordp);
-	GPSbericht.maak_id0x40(datablock, NBcoord, OLcoord);
-	pack.maakpacket(&llp, 0x40, 1, 4, datablock);
-	GPSfile.logbericht(&llp, 4);
-    
-//-->werk positie bij en beeld af op scherm
-	koers += *roerp/10;							//veranderstelde reactiesnelheid op roer
-	snelheid += gasstand -0.1*snelheid*snelheid;	//kwadratische weerstand //--> controleren of dit binnen int past
-	gpspos.berekenpositie(koers, snelheid, NBcoordp, OLcoordp);
-  
-	hulps << "Noorderbreedte   \t"<< NBcoord;				A[0]= hulps.str(); hulps.str("");
-	hulps << "Oosterlengte    \t" << OLcoord;				A[1]=hulps.str();hulps.str("");
+	hulps << "automaat     \t" <<*waterBBp;	A[19]=hulps.str();hulps.str("");
+	hulps << "route        \t" <<*waterBBp;	A[20]=hulps.str();hulps.str("");
+	hulps << "routelogger  \t" <<*waterBBp;	A[21]=hulps.str();hulps.str("");
+	hulps << "toeren       \t" <<*waterBBp;	A[22]=hulps.str();hulps.str("");
+	hulps << "einde";						A[23]=hulps.str();hulps.str("");
+	toestandwindow.print(A);
+//
+// GPS logger (slaat iedere loop (2 to 10 seconden de actuele positie op)
+   GPSlog.addpoint(gpspos);
+//	
+//  Werk positie bij met Dynamics en beeld af op scherm
+	simulatie.bereken_koers_en_snelheid(gasstand, roer, snelheidsp, koersp);
+    simulatie.berekenpositie(koers, snelheid, NBcoordp, OLcoordp);  
+
+	hulps << "Noorderbreedte   \t"<< NBcoord;			A[0]= hulps.str(); hulps.str("");
+	hulps << "Oosterlengte    \t" << OLcoord;			A[1]=hulps.str();hulps.str("");
 	hulps << "Snelheid        \t" << snelheid;			A[2]=hulps.str();hulps.str("");
 	hulps << "Behouden koers  \t" << koers;				A[3]=hulps.str();hulps.str("");
-	hulps << "einde";										A[4]=hulps.str();hulps.str("");
+	hulps << "Tijd          \t"<< nu->tm_hour<<":"<< nu->tm_min; A[4]=hulps.str();hulps.str("");
+
+	hulps << "einde";									A[5]=hulps.str();hulps.str("");
 	GPSwindow.print(A);
+//
+//  Bijsturen
+	void bijsturen (int* roerstand, int modus, string route, int* afstandWPTp, int* koersWPTp, bool* alarm);
+	if (alarm=true); //BEEP
 
 // Verwerking menukeuze (van de vorige loop)
 	switch(menutoestand)
@@ -322,26 +345,14 @@ int main()
 			menuwindow.print(A);
 			break;
 	}
-
-	if (keybmodus==MENUMODUS)
-	{	if(WaitForSingleObject(keybMutex,CHECK_INTERVAL)==WAIT_TIMEOUT) {}
-		else									//er is user input binnengekomen (string of char +return)
-		{   if (menutoestand ==0) menutoestand=keuze;
-			else if (menutoestand ==1) menutoestand =keuze+10;
-			else if (menutoestand ==2) menutoestand =keuze+20;
-			else if (menutoestand ==3) menutoestand =keuze+30;
-			else if (menutoestand==21) menutoestand =keuze+210;
-			else if (menutoestand==22) menutoestand =keuze+220;
-			userinput="";
-			ReleaseMutex(keybMutex);
-		}
+	//std::cin>>keuze;
+	if (menutoestand ==0) menutoestand=keuze;
+	else if (menutoestand ==1) menutoestand =keuze+10;
+	else if (menutoestand ==2) menutoestand =keuze+20;
+	else if (menutoestand ==3) menutoestand =keuze+30;
+	else if (menutoestand==21) menutoestand =keuze+210;
+	else if (menutoestand==22) menutoestand =keuze+220;
 	}
-
-  // roer veranderen !
-  // storingen simuleren ?
-  // geef alarmen
-  // routes instellen
-  }
 }   
   
 

@@ -19,7 +19,6 @@ class File
    void init(std::string filenaam); 
    void leesbericht(L_packet* llp_p);
    void zendbericht(L_packet* llp, char lengte);
-   void logbericht (L_packet* llp, char lengte);
 private:
    std::string s;
 };

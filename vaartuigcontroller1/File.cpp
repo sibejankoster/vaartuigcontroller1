@@ -40,14 +40,3 @@ void File::zendbericht(L_packet* llp, char lengte)
   filestream.close();
 }
 
-void File::logbericht (L_packet* llp, char lengte)
-{ std::ofstream filestream("GPSfile", std::ios::out | std::ios::app | std::ios::binary);
-  filestream<<llp->id_block1<<llp->id_block2;
-  int i=0;
-  do
-  {  filestream<<llp->datablock[i];
-  }
-  while(++i<lengte);
-  filestream<<std::endl;
-  filestream.close();
-}

@@ -13,7 +13,6 @@ class GPSpositie
    float NB, OL; 
 	
 public:
-	void berekenpositie(int koers, int snelheid, float* NBcoord, float* OLcoord);
 	void getpos(float* NB, float* OL);
 	void put(float NB,float OL);
 };
@@ -21,7 +20,6 @@ public:
 class Waypoint: public GPSpositie
 {  private:
 	   std::string naam;
-	   float NB, OL;
    public:
 	   void aanmaken(std::string naam, float NB, float OL);
 	   void edit(std::string naam, float* NB, float* OL);
@@ -39,6 +37,16 @@ public:
 	string zoek (string naam);
 	int save ();
 	int load ();
+};
+
+class Route: public Waypointlijst
+{ private:
+	string naam;
+	int richting;
+	int act_positie;
+  public:
+	void zoek_volgende_punt(int richting, string vorige_punt);
+	bool waypoint_bereikt();
 };
 
 #endif //GPS_H

@@ -77,20 +77,26 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CANFormat.cpp" />
+    <ClCompile Include="Dynamics.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="GPS.cpp" />
     <ClCompile Include="Layout.cpp" />
+    <ClCompile Include="logfile.cpp" />
     <ClCompile Include="scheduler.cpp" />
     <ClCompile Include="Opdracht.cpp" />
     <ClCompile Include="Packet.cpp" />
+    <ClCompile Include="Stuurautomaat.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CANFormat.h" />
+    <ClInclude Include="Dynamics.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="GPS.h" />
     <ClInclude Include="Layout.h" />
+    <ClInclude Include="logfile.h" />
     <ClInclude Include="Opdracht.h" />
     <ClInclude Include="Packet.h" />
+    <ClInclude Include="Stuurautomaat.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
